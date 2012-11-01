@@ -9,7 +9,7 @@ import config
 class GoatSearcher(object):
 	def __init__(self, search_term=None):
 		self.search_term = search_term or "goat"
-		self.random_image_number = random.randint(1, 50)
+		self.random_image_number = random.randint(1, config.MAX_RESULT)
 
 	def _build_search_url(self):
 		params = urllib.urlencode(
