@@ -41,7 +41,7 @@ def get_firefox_driver_with_cookie(cookie):
 	return firefox_driver
 
 
-class GoatMachineRunner(object):
+class GoatMachine(object):
 
 	def __init__(self, driver, to, su, goat_url, dry_run=False):
 		self.driver = driver
@@ -129,24 +129,3 @@ class GoatMachineRunner(object):
 			send_but = self.driver.find_element_by_id(":pl")
 			self.wait_until_displayed(send_but)
 			self.driver.find_element_by_id(":pl").click()
-
-
-if __name__ == "__main__":
-
-	to = "phyrexian000@gmail.com"
-
-	su = "goats galore from selenium"
-
-	goat_url = "http://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Hausziege_04.jpg/256px-Hausziege_04.jpg"
-
-	# This is my yelp cookie -- it may or may not expire at some point.
-	# If so, copy your GX value into here.
-	cookie = dict(name='GX', value='DQAAAIUBAADEYLX6Ju-695dxHbW5aleG0QKWA1LlH6OU4YA7Ayru9HlF5rqDP8SJYW9PbEPcpM0wyj_p79y4MOJC-a9XSIvr5fJcbkSjBOhULLiytYhLlxFU4eJXsYkEWNU7aNi3MGnwAbaROc44IkOBPkCiwXFWdwhKGFkFTQo41TJvYdzXnfOUXTpa_DSb5bk6GXYZFBZ-q4XZJO9fu5SQ8Undr8TW6J70cTnJ8zf-VNSVFdoR_pSb-mguiIwwHLaR8m2bxDvoKiBcdyS95SbuqLTplUxmTf8B8mqvUn5j-ZqPI8LVEKCKhZ54flX0m02eyC6FTaafdnBi4dfJfNcr9dSQ6D6BAebz91ZM1B0_Sl-WY3nq2KmSy35YFf3Z87xS2EcyAaqtnZPQGepd0jWRHSCK5xZ5hhj4usOuCHhz0zIxAF3yAULTkIeAwYRJDdd-YXsV_1KlZUcGeNhy5nSgVt1FftkGufcG1rFc2bOmVOz-1vK3qqXAYIazKVUzkhXNoJqbagsnMAZahANeQDVYErfiVMSM', domain='mail.google.com')
-
-	ff = get_firefox_driver_with_cookie(cookie)
-
-	# ff = get_os_x_firefox_driver_with_profile()
-
-	GoatMachineRunner(ff, to, su, goat_url, dry_run=True).post_goat_mail()
-
-	ff.quit()

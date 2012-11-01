@@ -1,0 +1,4 @@
+API_BASE_URL = ""
+API_KEY = ""
+CX = ""
+RES_PER_REQUEST = ""
