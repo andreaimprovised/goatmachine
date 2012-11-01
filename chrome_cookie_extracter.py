@@ -12,7 +12,6 @@ class ChromeCookieExtracter(object):
 		'value': default,
 		'path': default,
 		'host_key': lambda key, row: ('domain', row[key][1:]),
-		'secure': to_bool,
 		'expires_utc': lambda key, row: ('expiry', row[key])
 	}
 
