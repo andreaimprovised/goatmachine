@@ -1,4 +1,5 @@
 API_BASE_URL = ""
 API_KEY = ""
 CX = ""
+MAX_RESULT = ""
 RES_PER_REQUEST = ""
