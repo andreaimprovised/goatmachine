@@ -48,8 +48,6 @@ class GoatMachine(object):
 		if config.DOMAIN.lower() not in self.driver.title.lower():
 			raise WrongDomainError
 
-		self.driver.implicitly_wait(1)
-
 		self._insert_picture()
 
 		self._click_send_button()
@@ -70,8 +68,6 @@ class GoatMachine(object):
 			return
 		except NoSuchElementException:
 			pass
-
-		self.driver.implicitly_wait(0)
 
 		#####################
 		# gmail old compose #
@@ -106,23 +102,6 @@ class GoatMachine(object):
 		okay_but.click()
 
 		self.driver.implicitly_wait(1)
-
-	def _insert_picture_dialog(self):
-		"""Shared logic to going through the insert picture dialog"""
-		# Click the user Web URL radio button
-		radio_but = self.driver.find_element_by_id("tr_image-dialog-external-image-tab-dialog-radio")
-		self.wait_until_displayed(radio_but)
-		radio_but.click()
-
-		# Type link for picture
-		web_url_bar = self.driver.find_element_by_id("tr_image-dialog-external-image-input")
-		self.wait_until_displayed(web_url_bar)
-		web_url_bar.send_keys(self.goat_url)
-
-		# Confirm insert picture
-		okay_but = self.driver.find_element_by_name("ok")
-		self.wait_until_enabled(okay_but)
-		okay_but.click()
 
 	def _insert_picture_dialog(self):
 		"""Shared logic to going through the insert picture dialog"""
