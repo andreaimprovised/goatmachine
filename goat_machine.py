@@ -84,28 +84,79 @@ class GoatMachine(object):
 		# This polls for 1 second on each "find" operation if it initially fails
 		self.driver.implicitly_wait(1)
 
-		self._access_picture_dialog()
-
-		self._insert_picture_dialog()
+		self._insert_picture()
 
 		self._click_send_button()
 
-	def _access_picture_dialog(self):
-		if self._is_new_version():
+	def _insert_picture(self):
+		#####################
+		# gmail new compose #
+		#####################
+
+		try:
 			# The insert pics button is only visible when hovering over the + button.
 			# Hover over insert things "+" symbol, then click on the insert pic button
 			webdriver.ActionChains(self.driver).move_to_element(self.driver.find_element_by_id(":qb")).perform()
 			insert_pic_but = self.driver.find_element_by_id(":nk")
 			self.wait_until_displayed(insert_pic_but)
 			insert_pic_but.click()
-		else:
-			try:
-				insert_pic_but = self.driver.find_element_by_xpath("//div[@command=\"image\"]")
-				insert_pic_but.click()
-			except NoSuchElementException:
-				# Doesn't have image inline plugin
-				# Put the url inline
-				self.driver.find_element_by_id(":q0").send_keys(self.goat_url)
+			self._insert_picture_dialog()
+			return
+		except NoSuchElementException:
+			pass
+
+		self.driver.implicitly_wait(0)
+
+		#####################
+		# gmail old compose #
+		#####################
+
+		# if currently in plain text mode, switch to rich text
+		mode_switch_span = self.driver.find_element_by_id(":py")
+		if "Rich" in mode_switch_span.text:
+			mode_switch_span.click()
+			self.driver.implicitly_wait(1)
+
+		# gmail old compose with labs insert inline picture plugin
+		try:
+			insert_pic_but = self.driver.find_element_by_xpath("//div[@command='image']")
+			insert_pic_but.click()
+			self._insert_picture_dialog()
+			return
+		except NoSuchElementException:
+			pass
+
+		# no inline picture support
+
+		# Open the dialog box and insert the url
+		self.driver.find_element_by_xpath("//div[@command='+link']").click()
+		url_box = self.driver.find_element_by_id("linkdialog-onweb-tab-input")
+		self.wait_until_displayed(url_box)
+		url_box.send_keys(self.goat_url)
+
+		# Wait until okay button is enabled and then click okay
+		okay_but = self.driver.find_element_by_name("ok")
+		self.wait_until_enabled(okay_but)
+		okay_but.click()
+
+		self.driver.implicitly_wait(1)
+
+	def _insert_picture_dialog(self):
+		"""Shared logic to going through the insert picture dialog"""
+		# Click the user Web URL radio button
+		radio_but = self.driver.find_element_by_id("tr_image-dialog-external-image-tab-dialog-radio")
+		self.wait_until_displayed(radio_but)
+		radio_but.click()
+
+		# Type link for picture
+		web_url_bar = self.driver.find_element_by_id("tr_image-dialog-external-image-input")
+		self.wait_until_displayed(web_url_bar)
+		web_url_bar.send_keys(self.goat_url)
+
+		# Confirm insert picture
+		okay_but = self.driver.find_element_by_name("ok")
+		self.wait_until_enabled(okay_but)
+		okay_but.click()
 
 	def _insert_picture_dialog(self):
 		"""Shared logic to going through the insert picture dialog"""
