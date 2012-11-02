@@ -5,11 +5,13 @@ from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
 
-def get_firefox_driver_with_cookie(cookie):
-	firefox_driver = webdriver.Firefox()
-	firefox_driver.get("http://mail.google.com/goatingyourightnow")
-	firefox_driver.add_cookie(cookie)
-	return firefox_driver
+import config
+
+
+
+
+class WrongDomainError(Exception):
+	pass
 
 
 class GoatMachine(object):
@@ -29,7 +31,6 @@ class GoatMachine(object):
 			self.driver.quit()
 			sys.exit(-1)
 
-
 	def wait_until_enabled(self, target, timeout=1):
 		try:
 			WebDriverWait(self.driver, timeout).until(lambda _: target.is_enabled())
@@ -38,18 +39,13 @@ class GoatMachine(object):
 			self.driver.quit()
 			sys.exit(-1)
 
-	def _is_new_version(self):
-		# Look for that weird panel at the bottom of the page
-		# if its there then its the new version
-		try:
-			self.driver.find_element_by_id(":qb")
-		except NoSuchElementException:
-			return False
-		return True
-
 	def post_goat_mail(self):
 		# Automatically set the to and subject fields in the URL params"""
 		self.driver.get("http://mail.google.com/mail?view=cm&tf=0&to={to}&su={su}".format(to=self.to, su=self.su))
+
+		# Make sure we are goating an email in the right domain
+		if config.DOMAIN not in self.driver.find_element_by_class_name("gbps2").text:
+			raise WrongDomainError
 
 		# This page is so AJAX-y, that at "onload", most things aren't around
 		# This polls for 1 second on each "find" operation if it initially fails

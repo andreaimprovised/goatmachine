@@ -4,6 +4,8 @@ python runner.py "your query here"
 """
 import sys
 
+from selenium import webdriver
+
 import image_fetcher
 import gx_cookie_extractor
 import goat_machine
@@ -18,7 +20,18 @@ if __name__ == "__main__":
 
 	to = "goats@gmail.com"
 	su = "selenium goat"
-	cookie = gx_cookie_extractor.GXCookieExtractorMeta.get_gx_cookie()
-	firefox_driver = goat_machine.get_firefox_driver_with_cookie(cookie)
-	goat_machine.GoatMachine(firefox_driver, to, su, goat_url, dry_run=True).post_goat_mail()
+
+	firefox_driver = webdriver.Firefox()
+	goater = goat_machine.GoatMachine(firefox_driver, to, su, goat_url, dry_run=True)
+
+	firefox_driver.get("http://mail.google.com/goatingyourightnow")
+
+	for cookie in gx_cookie_extractor.GXCookieExtractorMeta.yield_gx_cookies():
+		firefox_driver.add_cookie(cookie)
+		try:
+			goater.post_goat_mail()
+			break
+		except goat_machine.WrongDomainError:
+			firefox_driver.delete_all_cookies()
+
 	firefox_driver.quit()
