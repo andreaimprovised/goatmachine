@@ -2,8 +2,45 @@ import os
 import platform
 
 firefox_profile_locations = {
-	'Darwin': "Library/Application Support/Firefox/Profiles/",
-	'Linux': ".mozilla/firefox/"
+	'Darwin': os.path.expanduser(
+		os.path.join(
+			'~',
+			'Library',
+			'Application Support',
+			'Firefox',
+			'Profiles',
+		)
+	),
+	'Linux': os.path.expanduser(
+		os.path.join(
+			'~',
+			'.mozilla',
+			'firefox'
+		)
+	)
+}
+
+chrome_cookies_locations = {
+	'Darwin': os.path.expanduser(
+		os.path.join(
+			'~',
+			'Library',
+			'Application Support',
+			'Google',
+			'Chrome',
+			'Default',
+			'Cookies'
+		)
+	),
+	'Linux': os.path.expanduser(
+		os.path.join(
+			'~',
+			'.config',
+			'google-chrome',
+			'Default',
+			'Cookies'
+		)
+	)
 }
 
 def get_firefox_profile_path():
@@ -24,3 +61,7 @@ def get_firefox_profile_path():
 			profile_path = path
 			break
 	return os.path.join(profiles_path, profile_path)
+
+def get_chrome_cookies_path():
+	return chrome_cookies_locations[platform.system()]
+	
