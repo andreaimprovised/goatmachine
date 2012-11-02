@@ -17,6 +17,29 @@ class GXCookieExtractorMeta(type):
 
 	cookie_extractor_classes = []
 
+	def __init__(
+			cls,
+			class_name,
+			base_classes,
+			class_dict
+	):
+		super(GXCookieExtractorMeta, cls).__init__(
+			class_name,
+			base_classes,
+			class_dict
+		)
+		if cls.keys_remap is not None:
+			cls.cookie_extractor_classes.append(cls)
+
+	@classmethod
+	def get_gx_cookie(cls):
+		for extractor_class in cls.cookie_extractor_classes:
+			try:
+				return extractor_class().get_gx_cookie()
+			except CookieNotFoundError:
+				pass
+		raise CookieNotFoundError()
+
 
 class GXCookieExtractor(object):
 
@@ -88,7 +111,7 @@ class FirefoxGXCookieExtractor(GXCookieExtractor):
 		'name': default,
 		'value': default,
 		'path': default,
-		'host': lambda key, row: ('domain', row[key]),
+		'host': lambda key, row: ('domain', row[key][1:]),
 		'expiry': default
 	}
 
