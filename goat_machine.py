@@ -8,8 +8,6 @@ from selenium.common.exceptions import NoSuchElementException
 import config
 
 
-
-
 class WrongDomainError(Exception):
 	pass
 
@@ -43,12 +41,14 @@ class GoatMachine(object):
 		# Automatically set the to and subject fields in the URL params"""
 		self.driver.get("http://mail.google.com/mail?view=cm&tf=0&to={to}&su={su}".format(to=self.to, su=self.su))
 
-		# Make sure we are goating an email in the right domain
-		if config.DOMAIN not in self.driver.find_element_by_class_name("gbps2").text:
-			raise WrongDomainError
-
 		# This page is so AJAX-y, that at "onload", most things aren't around
 		# This polls for 1 second on each "find" operation if it initially fails
+		self.driver.implicitly_wait(2)
+
+		# Make sure we are goating an email in the right domain
+		if config.DOMAIN.lower() not in self.driver.title.lower():
+			raise WrongDomainError
+
 		self.driver.implicitly_wait(1)
 
 		self._insert_picture()
