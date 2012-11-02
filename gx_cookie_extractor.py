@@ -40,7 +40,7 @@ class GXCookieExtractorMeta(type):
 			try:
 				for cookie in extractor_class().get_gx_cookie():
 					yield cookie
-			except CookieNotFoundError:
+			except (CookieNotFoundError, sqlite3.OperationalError):
 				pass
 
 
@@ -94,17 +94,7 @@ class ChromeGXCookieExtractor(GXCookieExtractor):
 
 	@property
 	def cookies_path(self):
-		return os.path.expanduser(
-			os.path.join(
-				'~',
-				'Library',
-				'Application Support',
-				'Google',
-				'Chrome',
-				'Default',
-				'Cookies'
-			)
-		)
+		return common.get_chrome_cookies_path()
 
 
 class FirefoxGXCookieExtractor(GXCookieExtractor):
@@ -138,12 +128,15 @@ class FirefoxGXCookieExtractor(GXCookieExtractor):
 			self
 		).get_gx_cookie_dictionaries(table_name):
 			yield cookie
-		with open(self.session_cookies_path) as file:
-			cookies_dump = json.load(file)
-		for window in cookies_dump['windows']:
-			for cookie in window['cookies']:
-				if cookie['name'] == 'GX':
-					yield cookie
+		try:
+			with open(self.session_cookies_path) as file:
+				cookies_dump = json.load(file)
+			for window in cookies_dump['windows']:
+				for cookie in window['cookies']:
+					if cookie['name'] == 'GX':
+						yield cookie
+		except (IOError, KeyError):
+			pass
 
 if __name__ == '__main__':
 	for cookie in GXCookieExtractorMeta.yield_gx_cookies():
