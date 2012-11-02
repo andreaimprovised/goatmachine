@@ -28,4 +28,5 @@ pip-log.txt
 
 .idea
 
-.ropeprojectconfig.py
+.ropeproject
+config.py
