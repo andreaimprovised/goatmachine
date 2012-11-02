@@ -1,9 +1,17 @@
 #!/usr/bin/python
+import json
 import os
 import sqlite3
 
+import common
+
 default = lambda key, row: (key, row[key])
 to_bool = lambda key, row: (key, bool(row[key]))
+
+
+class CookieNotFoundError(Exception):
+	pass
+
 
 class GXCookieExtractor(object):
 
@@ -20,9 +28,12 @@ class GXCookieExtractor(object):
 		raise NotImplementedError()
 
 	def get_gx_cookie_dictionary(self, table_name):
-		return self.connection.cursor().execute(
-			"SELECT * from %s WHERE name = 'GX'" %(table_name,)
+		cookie_dictionary = self.connection.cursor().execute(
+			"SELECT * from %s WHERE name = 'GX'" % (table_name,)
 		).fetchone()
+		if cookie_dictionary:
+			return cookie_dictionary
+		raise CookieNotFoundError()
 
 	def get_gx_cookie_from_row(self, keys_remap, row):
 		return dict(
@@ -33,12 +44,13 @@ class GXCookieExtractor(object):
 	def get_gx_cookie(self):
 		return self.get_gx_cookie_from_row(
 			self.keys_remap,
-			self.get_gx_cookie_dictionary('cookies'),
+			self.get_gx_cookie_dictionary(self.table_name),
 		)
 
 
 class ChromeGXCookieExtractor(GXCookieExtractor):
 
+	table_name = 'cookies'
 	keys_remap = {
 		'name': default,
 		'value': default,
@@ -62,5 +74,46 @@ class ChromeGXCookieExtractor(GXCookieExtractor):
 		)
 
 
+class FirefoxGXCookieExtractor(GXCookieExtractor):
+
+	table_name = 'moz_cookies'
+	keys_remap = {
+		'name': default,
+		'value': default,
+		'path': default,
+		'host': lambda key, row: ('domain', row[key]),
+		'expiry': default
+	}
+
+
+	@property
+	def cookies_path(self):
+		return os.path.join(
+			common.get_firefox_profile_path(),
+			'cookies.sqlite'
+		)
+
+	@property
+	def session_cookies_path(self):
+		return os.path.join(
+			common.get_firefox_profile_path(),
+			'sessionstore.js'
+		)
+
+	def get_gx_cookie_dictionary(self, table_name):
+		try:
+			return super(
+				FirefoxGXCookieExtractor,
+				self
+			).get_gx_cookie_dictionary(table_name)
+		except CookieNotFoundError:
+			with open(self.session_cookies_path) as file:
+				cookies_dump = json.load(file)
+			for window in cookies_dump['windows']:
+				for cookie in window['cookies']:
+					if cookie['name'] == 'GX':
+						return cookie
+			raise
+
 if __name__ == '__main__':
-	print ChromeGXCookieExtractor().get_gx_cookie()
+	print FirefoxGXCookieExtractor().get_gx_cookie()
