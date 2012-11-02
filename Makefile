@@ -1,6 +1,5 @@
 usbstick:
-	rm -rf $(usb-dir)/*
-	cp -r . $(usb-dir)
+	cp -rf . $(usb-dir)
 	cp -r $(selenium-dir) $(usb-dir)
 	cat config.py | sed "s|DRY_RUN = True|DRY_RUN = False|" > $(usb-dir)/config.py
 

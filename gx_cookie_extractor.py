@@ -40,7 +40,7 @@ class GXCookieExtractorMeta(type):
 			try:
 				for cookie in extractor_class().get_gx_cookie():
 					yield cookie
-			except CookieNotFoundError:
+			except (CookieNotFoundError, sqlite3.OperationalError):
 				pass
 
 
