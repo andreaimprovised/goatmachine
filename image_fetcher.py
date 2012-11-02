@@ -2,9 +2,17 @@ import json
 import urllib
 import urllib2
 import random
+import itertools
 
 import config
 
+
+MAX_IMAGES_TRIED = 5
+WGET_TIMEOUT = 1
+
+
+class TimeOutException(Exception): pass
+class NoAvailableImageException(Exception): pass
 
 class GoatSearcher(object):
 	def __init__(self, search_term=None):
@@ -29,5 +37,15 @@ class GoatSearcher(object):
 
 	def get_my_goat_image(self):
 		all_results = json.loads(self._fetch_search_results())
-		my_image = all_results['items'][self.random_image_number % config.RES_PER_REQUEST]
+		for _ in itertools.repeat(None, MAX_IMAGES_TRIED):
+			my_image = all_results['items'][self.random_image_number % config.RES_PER_REQUEST]
+			try:
+				urllib2.urlopen(my_image['link'], timeout=WGET_TIMEOUT).read()
+			except urllib2.HTTPError:
+				continue
+			else:
+				break
+		else:
+			raise NoAvailableImageException
+
 		return my_image['link']
