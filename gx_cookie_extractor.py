@@ -13,7 +13,14 @@ class CookieNotFoundError(Exception):
 	pass
 
 
+class GXCookieExtractorMeta(type):
+
+	cookie_extractor_classes = []
+
+
 class GXCookieExtractor(object):
+
+	__metaclass__ = GXCookieExtractorMeta
 
 	keys_remap = None
 	table_name = None
