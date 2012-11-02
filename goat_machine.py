@@ -1,38 +1,9 @@
-import os
 import sys
 
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
-
-
-OS_X_FF_PROFILE_ROOT = "Library/Application Support/Firefox/Profiles/"
-LINUX_FF_PROIFLE_ROOT = ".mozilla/firefox/"
-
-
-def get_firefox_driver_with_profile(root):
-	profiles_path = os.path.join(os.environ.get("HOME"), root)
-
-	uname = os.environ.get("USER")
-
-	profile_path = None
-
-	for path in os.listdir(profiles_path):
-		if "default" in path:
-			profile_path = path
-			break
-		elif uname in path:
-			profile_path = path
-			break
-
-	if profile_path is None:
-		raise LookupError("Could not find a profile for firefox!")
-
-	ff_profile = webdriver.FirefoxProfile(os.path.join(profiles_path, profile_path))
-
-	return webdriver.Firefox(firefox_profile=ff_profile)
-
 
 def get_firefox_driver_with_cookie(cookie):
 	firefox_driver = webdriver.Firefox()
