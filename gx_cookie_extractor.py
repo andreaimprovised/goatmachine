@@ -12,6 +12,9 @@ to_bool = lambda key, row: (key, bool(row[key]))
 class CookieNotFoundError(Exception):
 	pass
 
+class NoMoreCookiesError(Exception):
+	pass
+
 
 class GXCookieExtractorMeta(type):
 
@@ -32,13 +35,13 @@ class GXCookieExtractorMeta(type):
 			cls.cookie_extractor_classes.append(cls)
 
 	@classmethod
-	def get_gx_cookie(cls):
+	def yield_gx_cookies(cls):
 		for extractor_class in cls.cookie_extractor_classes:
 			try:
-				return extractor_class().get_gx_cookie()
+				for cookie in extractor_class().get_gx_cookie():
+					yield cookie
 			except CookieNotFoundError:
 				pass
-		raise CookieNotFoundError()
 
 
 class GXCookieExtractor(object):
@@ -57,13 +60,12 @@ class GXCookieExtractor(object):
 	def cookies_path(self):
 		raise NotImplementedError()
 
-	def get_gx_cookie_dictionary(self, table_name):
-		cookie_dictionary = self.connection.cursor().execute(
+	def get_gx_cookie_dictionaries(self, table_name):
+		cookie_dictionaries = self.connection.cursor().execute(
 			"SELECT * from %s WHERE name = 'GX'" % (table_name,)
-		).fetchone()
-		if cookie_dictionary:
-			return cookie_dictionary
-		raise CookieNotFoundError()
+		)
+		for cookie in cookie_dictionaries:
+			yield cookie
 
 	def get_gx_cookie_from_row(self, keys_remap, row):
 		return dict(
@@ -72,10 +74,11 @@ class GXCookieExtractor(object):
 		)
 
 	def get_gx_cookie(self):
-		return self.get_gx_cookie_from_row(
-			self.keys_remap,
-			self.get_gx_cookie_dictionary(self.table_name),
-		)
+		for cookie in self.get_gx_cookie_dictionaries(self.table_name):
+			yield self.get_gx_cookie_from_row(
+				self.keys_remap,
+				cookie
+			)
 
 
 class ChromeGXCookieExtractor(GXCookieExtractor):
@@ -112,7 +115,6 @@ class FirefoxGXCookieExtractor(GXCookieExtractor):
 		'value': default,
 		'path': default,
 		'host': lambda key, row: ('domain', row[key][1:]),
-		'expiry': default
 	}
 
 
@@ -130,20 +132,19 @@ class FirefoxGXCookieExtractor(GXCookieExtractor):
 			'sessionstore.js'
 		)
 
-	def get_gx_cookie_dictionary(self, table_name):
-		try:
-			return super(
-				FirefoxGXCookieExtractor,
-				self
-			).get_gx_cookie_dictionary(table_name)
-		except CookieNotFoundError:
-			with open(self.session_cookies_path) as file:
-				cookies_dump = json.load(file)
-			for window in cookies_dump['windows']:
-				for cookie in window['cookies']:
-					if cookie['name'] == 'GX':
-						return cookie
-			raise
+	def get_gx_cookie_dictionaries(self, table_name):
+		for cookie in super(
+			FirefoxGXCookieExtractor,
+			self
+		).get_gx_cookie_dictionaries(table_name):
+			yield cookie
+		with open(self.session_cookies_path) as file:
+			cookies_dump = json.load(file)
+		for window in cookies_dump['windows']:
+			for cookie in window['cookies']:
+				if cookie['name'] == 'GX':
+					yield cookie
 
 if __name__ == '__main__':
-	print FirefoxGXCookieExtractor().get_gx_cookie()
+	for cookie in GXCookieExtractorMeta.yield_gx_cookies():
+		print cookie
