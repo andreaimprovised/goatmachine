@@ -14,12 +14,11 @@ class WrongDomainError(Exception):
 
 class GoatMachine(object):
 
-	def __init__(self, driver, to, su, goat_url, dry_run=False):
+	def __init__(self, driver, to, su, goat_url):
 		self.driver = driver
 		self.to = to
 		self.su = su
 		self.goat_url = goat_url
-		self.dry_run = dry_run
 
 	def wait_until_displayed(self, target, timeout=1):
 		try:
@@ -143,7 +142,7 @@ class GoatMachine(object):
 		okay_but.click()
 
 	def _click_send_button(self):
-		if not self.dry_run:
+		if not config.DRY_RUN:
 			send_but = self.driver.find_element_by_id(":pl")
 			self.wait_until_displayed(send_but)
 			self.driver.find_element_by_id(":pl").click()
