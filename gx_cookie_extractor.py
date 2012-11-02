@@ -112,7 +112,6 @@ class FirefoxGXCookieExtractor(GXCookieExtractor):
 		'value': default,
 		'path': default,
 		'host': lambda key, row: ('domain', row[key][1:]),
-		'expiry': default
 	}
 
 
