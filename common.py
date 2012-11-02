@@ -2,8 +2,8 @@ import os
 import platform
 
 firefox_profile_locations = {
-	'darwin': "Library/Application Support/Firefox/Profiles/",
-	'linux': ".mozilla/firefox/"
+	'Darwin': "Library/Application Support/Firefox/Profiles/",
+	'Linux': ".mozilla/firefox/"
 }
 
 def get_firefox_profile_path():
@@ -13,7 +13,7 @@ def get_firefox_profile_path():
 
 	uname = os.environ.get("USER")
 
-	if profile_path is None:
+	if profiles_path is None:
 		raise LookupError("Could not find a profile for firefox!")
 
 	for path in os.listdir(profiles_path):
@@ -23,3 +23,4 @@ def get_firefox_profile_path():
 		elif uname in path:
 			profile_path = path
 			break
+	return os.path.join(profiles_path, profile_path)
