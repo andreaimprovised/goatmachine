@@ -1,8 +1,7 @@
-import sys
+import itertools
 
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium import webdriver
-from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
 
 import config
@@ -27,20 +26,33 @@ class GoatMachine(object):
 		WebDriverWait(self.driver, timeout).until(lambda _: target.is_enabled())
 
 	def post_goat_mail(self):
-		# Automatically set the to and subject fields in the URL params"""
-		self.driver.get("http://mail.google.com/mail?view=cm&tf=0&to={to}&su={su}".format(to=self.to, su=self.su))
-
 		# This page is so AJAX-y, that at "onload", most things aren't around
 		# This polls for 1 second on each "find" operation if it initially fails
 		self.driver.implicitly_wait(1)
 
-		# Make sure we are goating an email in the right domain
-		if config.DOMAIN.lower() not in self.driver.title.lower():
-			raise WrongDomainError
+		self._open_compose_page()
 
 		self._insert_picture()
 
 		self._click_send_button()
+
+	def _open_compose_page(self):
+	# Iterate through their potential open email accounts
+		for i in itertools.count():
+			self.driver.get("https://mail.google.com/mail/u/{i}/?view=cm&tf=0&to={to}&su={su}".format(
+					i=i, # account number (0 is default)
+					to=self.to, # destination email address
+					su=self.su, # subject of message
+				)
+			)
+
+			try:
+				app_name_element = self.driver.find_element_by_name("application-name")
+			except NoSuchElementException as e:
+				raise WrongDomainError
+			else:
+				if config.DOMAIN.lower() in app_name_element.get_attribute("content").lower():
+					return
 
 	def _insert_picture(self):
 		#####################
