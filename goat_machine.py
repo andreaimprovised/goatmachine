@@ -21,20 +21,10 @@ class GoatMachine(object):
 		self.goat_url = goat_url
 
 	def wait_until_displayed(self, target, timeout=1):
-		try:
-			WebDriverWait(self.driver, timeout).until(lambda _: target.is_displayed())
-		except TimeoutException:
-			import ipdb; ipdb.set_trace()
-			self.driver.quit()
-			sys.exit(-1)
+		WebDriverWait(self.driver, timeout).until(lambda _: target.is_displayed())
 
 	def wait_until_enabled(self, target, timeout=1):
-		try:
-			WebDriverWait(self.driver, timeout).until(lambda _: target.is_enabled())
-		except TimeoutException:
-			import ipdb; ipdb.set_trace()
-			self.driver.quit()
-			sys.exit(-1)
+		WebDriverWait(self.driver, timeout).until(lambda _: target.is_enabled())
 
 	def post_goat_mail(self):
 		# Automatically set the to and subject fields in the URL params"""
@@ -42,7 +32,7 @@ class GoatMachine(object):
 
 		# This page is so AJAX-y, that at "onload", most things aren't around
 		# This polls for 1 second on each "find" operation if it initially fails
-		self.driver.implicitly_wait(2)
+		self.driver.implicitly_wait(1)
 
 		# Make sure we are goating an email in the right domain
 		if config.DOMAIN.lower() not in self.driver.title.lower():
