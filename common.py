@@ -64,4 +64,4 @@ def get_firefox_profile_path():
 
 def get_chrome_cookies_path():
 	return chrome_cookies_locations[platform.system()]
-	
+

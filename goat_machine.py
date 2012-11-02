@@ -7,7 +7,7 @@ from selenium.common.exceptions import NoSuchElementException
 import config
 
 
-class WrongDomainError(Exception):
+class BadCookieError(Exception):
 	pass
 
 
@@ -25,12 +25,20 @@ class GoatMachine(object):
 	def wait_until_enabled(self, target, timeout=1):
 		WebDriverWait(self.driver, timeout).until(lambda _: target.is_enabled())
 
-	def post_goat_mail(self):
+	def post_goat_mail(self, cookie):
 		# This page is so AJAX-y, that at "onload", most things aren't around
 		# This polls for 1 second on each "find" operation if it initially fails
-		self.driver.implicitly_wait(1)
+		self.driver.implicitly_wait(1.5)
 
-		self._open_compose_page()
+		self.driver.get("http://mail.google.com/goatingyourightnow")
+
+		self.driver.add_cookie(cookie)
+
+		try:
+			self._open_compose_page()
+		except BadCookieError:
+			self.driver.delete_all_cookies()
+			raise BadCookieError
 
 		self._insert_picture()
 
@@ -49,7 +57,7 @@ class GoatMachine(object):
 			try:
 				app_name_element = self.driver.find_element_by_name("application-name")
 			except NoSuchElementException as e:
-				raise WrongDomainError
+				raise BadCookieError
 			else:
 				if config.DOMAIN.lower() in app_name_element.get_attribute("content").lower():
 					return
